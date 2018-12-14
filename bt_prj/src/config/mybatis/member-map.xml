@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+<mapper namespace="userNameSpace">
+<mapper namespace="com.biz.mapper.UserMap">
+ -->
+ 	<mapper namespace="userNameSpace">
+	<resultMap id="memberMap" type="com.biz.member.MemberVO">
+		<result property="userSeq"   column="user_seq" />
+		<result property="userId" 	 column="user_id" />
+		<result property="userName"  column="user_name" />
+		<result property="userPw" 	 column="user_pw" />
+		<result property="userEmail" column="user_email" />
+		<result property="userGubun" column="user_gubun" />
+		<result property="regdate" 	 column="regdate" />
+		<result property="userDel"	 column="user_del" />
+		<result property="pname"	 column="pname" />
+		<result property="ppath"	 column="ppath" />
+		<result property="sysname"	 column="sysname" />
+		<result property="join_path" column="join_path" />
+	</resultMap>
+	
+	<update id="changePassword" parameterType="com.biz.member.MemberVO">
+ 		update member
+		set user_pw = #{userPw}
+		where user_email = #{userEmail}
+ 	</update>
+	
+ 	<sql id="commonSelect">user_seq, user_id, user_name, user_gubun, sysname</sql> 
+ 	
+ 	<!-- parameterMap 없어짐
+ 	resultType="VO" -->
+ 	<select id="login"
+ 	parameterType="com.biz.member.MemberVO"
+ 	resultMap="memberMap">
+ 		select <include refid="commonSelect" />
+		from member 
+		where user_id=#{userId} and user_pw=#{userPw} and USER_DEL='n'	
+ 	</select>
+ 	
+ 	<select id="member_detail"
+ 	parameterType="String"
+ 	resultMap="memberMap">
+ 		select user_seq, user_id, user_name, user_email, user_gubun, ppath , pname, sysname
+		from member
+		
+		where user_id=#{value} and USER_DEL='n'
+ 	</select>
+ 	
+ 	<select id="member_list"
+ 	parameterType="com.biz.member.MemberVO"
+ 	resultMap="memberMap">
+ 		select user_seq, user_id, user_name, user_email, user_gubun, ppath , pname, sysname
+ 		from member
+ 		<where>
+ 		<if test="searchGubun != null">
+			${searchGubun} = #{searchStr}
+		</if>
+		<!-- <if test=" != null">
+		
+		</if>  -->
+		</where>
+ 		order by user_seq
+ 	</select>
+ 
+ 	<insert id="member_register" parameterType="com.biz.member.MemberVO">
+ 		insert into member
+ 		(user_seq,user_id,user_name,user_pw
+ 		,user_email,user_gubun
+		,regdate,user_del,ppath,pname,sysname,join_path)
+		values
+		(seq_member.nextval,#{userId},#{userName},#{userPw},#{userEmail},'u'
+		,sysdate,'n',#{ppath},#{pname},#{sysname},#{join_path}
+		)
+ 	</insert>
+ 	
+ 	<update id="member_update" parameterType="com.biz.member.MemberVO">
+ 		update member
+		set 
+		user_name=#{userName}, user_pw=#{userPw}, user_email=#{userEmail}
+		,ppath=#{ppath}, pname=#{pname}, sysname=#{sysname}
+		where 
+		user_id=#{userId} and USER_DEL='n'
+ 	</update>
+ 	
+ 	<update id="member_delete" parameterType="String">
+ 		update member
+		set user_del='y'
+		where user_id=#{value} and USER_DEL='n'
+ 	</update>
+ 	
+ 	
+ 	
+ 	
+	
+	<!-- <select id="allUser" resultType="com.biz.user.UserVO">
+		select  seq, id, pw, name
+		from mvcuser
+	</select>
+	<insert id="insertUser" parameterType="com.biz.user.UserVO">
+		insert into mvcuser
+		values(mvcuser_seq.nextval, #{id},#{pw},#{name})
+	</insert>  -->
+	
+</mapper>	

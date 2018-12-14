@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- <mapper namespace="userNameSpace"> <mapper namespace="com.biz.mapper.MemberMapper"> -->
+<mapper namespace="shopNameSpace">
+	<!--  맛집 상세보기 : 맛집정보1, 맛집사진들:n , 댓글:n -->
+	<resultMap id="shop_pic_reply_1nn" type="com.biz.shop.ShopVO" 
+		extends="shopMap">
+			<collection property="pvolist" resultMap="shopPicMap"/>
+			<collection property="rvolist" resultMap="replyMap"/>
+	</resultMap>
+
+	<resultMap id="shop_pic_1n" type="com.biz.shop.ShopVO" 
+		extends="shopMap">
+			<collection property="pvolist" resultMap="shopPicMap"/>
+	</resultMap>
+
+	<resultMap id="shop_pic_11" type="com.biz.shop.ShopVO" 
+			extends="shopMap">
+			<association property="shopPicVO" resultMap="shopPicMap"/>
+	</resultMap>
+	
+	<resultMap id="shopMap" type="com.biz.shop.ShopVO">
+		<id property="sseq" column="sseq" />
+		<result property="sname" column="sname" />
+		<result property="sinfo" column="sinfo" />
+		<result property="lat" column="lat" />
+		<result property="lng" column="lng" />
+		<result property="placename" column="placename" />
+		<result property="regid" column="regid" />
+		<result property="regdate" column="regdate" />
+		<result property="distance" column="distance" />
+		<result property="topn" column="topn" />
+	</resultMap>
+	
+	<resultMap id="shopPicMap" type="com.biz.shop.ShopPicVO">
+			<id property="pseq" column="pseq" />
+			<result property="ppath" column="ppath" />
+			<result property="pname" column="pname" />
+			<result property="sysname" column="sysname" />
+			<result property="sseq" column="sseq" />
+			<result property="pyn" column="pyn" />
+	</resultMap>
+	
+	<resultMap id="replyMap" type="com.biz.shop.ReplyVO">
+			<id property="rseq" 			column="rseq" />
+			<result property="reply" 	column="reply" />
+			<result property="regid" 	column="regid" />
+			<result property="regdate" column="regdate" />
+			<result property="sseq" 	column="sseq" />
+	</resultMap>
+
+	<!-- 맛집 댓글 입력 -->
+	<insert id="reply_insert" parameterType="com.biz.shop.ReplyVO">
+			insert 
+			into reply(rseq, reply, regid, regdate, sseq)
+			values(reply_seq.nextval, #{reply}, #{regid}, sysdate, #{sseq})
+	</insert>
+	<!-- 맛집 댓글 목록 -->
+	<select id="reply_select" parameterType="int" resultType="com.biz.shop.ReplyVO">
+			select * 
+			from reply
+			where sseq=#{value}
+	</select>
+	
+	
+	<select id="selectNextSseq" resultType="int">
+		select max(sseq)+1 as sseq from shop_info
+	</select>
+
+	<insert id="insertShopInfo" parameterType="com.biz.shop.ShopVO">
+		insert 
+		into shop_info(sseq,sname,sinfo,lat,lng,regid,regdate,placename)
+		values(#{sseq},#{sname},#{sinfo},#{lat},#{lng},#{regid},sysdate,#{placename})
+	</insert>
+
+	<insert id="insertShopPic"
+		parameterType="com.biz.shop.ShopPicVO">
+		insert 
+		into shop_pic(pseq, ppath, pname,sseq,pyn,sysname)
+		values(shop_pic_seq.nextval,#{ppath},
+						#{pname},#{sseq},#{pyn},#{sysname})
+	</insert>
+	
+	
+	<select id="selectShopInfo" parameterType="int"
+		resultMap="shop_pic_reply_1nn">
+			select i.sseq, i.sname, i.sinfo, i.lat, i.lng,
+						nvl(p.ppath,'c:/uploads') as ppath,
+						nvl(p.pname, '000.png') as pname,
+						r.rseq, r.reply, r.regid, r.regdate
+			from shop_info i, shop_pic p, reply r
+			where i.sseq=#{value} 
+						and i.sseq = p.sseq(+)
+						and i.sseq = r.sseq(+)
+			order by p.pyn desc, r.rseq asc
+	</select>
+	
+	<!-- <select id="selectShopInfo" parameterType="int"
+		resultMap="shop_pic_1n">
+			select i.sseq, i.sname, i.sinfo, i.lat, i.lng,
+						nvl(p.ppath,'c:/uploads') as ppath,
+						nvl(p.pname, '000.png') as pname
+			from shop_info i, shop_pic p
+			where i.sseq=#{sseq} 
+						and i.sseq = p.sseq(+)
+			order by p.pyn desc
+	</select> -->
+		
+	<select id="selectTopN" 
+		parameterType="com.biz.shop.ShopVO" 
+		resultMap="shop_pic_11">
+		<![CDATA[
+			select t.*
+			from (
+					select i.sseq, i.sname, i.sinfo, i.lat, i.lng,
+					nvl(p.ppath,'c:/uploads') as ppath,
+					nvl(p.pname, '000.png') as pname,
+					calc_distance(i.lat, i.lng, #{lat}, #{lng}) as distance
+					from shop_info i, shop_pic p
+					where i.sseq = p.sseq(+)
+					and p.pyn(+) = 'y'
+					order by sseq desc
+			) t
+			where rownum  <= #{topn}
+		]]>
+		
+	</select>
+
+	<select id="selectAll" parameterType="com.biz.shop.ShopVO" 
+					resultMap="shop_pic_11">
+		<![CDATA[
+		select b.*
+		from (select rownum rr, t.*
+		from	(select i.sseq, i.sname, i.sinfo, i.lat, i.lng,
+						nvl(p.ppath,'c:/uploads') as ppath,
+						nvl(p.pname, '000.png') as pname
+						-- calc_distance(i.lat, i.lng, 37.562423 , 126.983759) as distance
+			from shop_info i, shop_pic p
+			where i.sseq = p.sseq(+)
+						and p.pyn(+) = 'y'
+			order by sseq desc) t ) b
+		where rr between #{startSeq} and #{endSeq};
+		]]>
+	</select>
+
+
+	<select id="selectCount" resultMap="int">
+		select count(1) as cnt from shop_info
+	</select>
+
+</mapper>	
