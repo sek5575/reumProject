@@ -33,7 +33,7 @@ $(document).ready(function(){
           <div class="page-inner">
             <h1>Un Authorization ~!</h1>
             <div class="page-description">
-				접근 권한이 없습니다.
+				은규는 접근 권한이 없습니다.
 				<a href="/index.jsp">GO Main</a>
             </div>
             <div class="page-search">
