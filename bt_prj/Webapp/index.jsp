@@ -6,7 +6,7 @@
   	<!-- header css / jquery cdn -->
       <%@ include file="/include/header.jsp" %>
       
- <script>
+ <script>   
  $(document).ready(function(){ 
 	 
 	 //-----------등록된 SHOP 맛집 정보 불러오기-------------------------
