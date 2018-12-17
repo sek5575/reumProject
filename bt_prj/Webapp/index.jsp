@@ -5,7 +5,7 @@
 <head>
   	<!-- header css / jquery cdn -->
       <%@ include file="/include/header.jsp" %>
-      
+      <!-- hihihi -->
  <script>     
  $(document).ready(function(){ 
 	 
