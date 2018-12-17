@@ -7,6 +7,7 @@
       <%@ include file="/include/header.jsp" %>
       <!-- hihihi -->
       <!-- 소희바보  -->
+      <!--  소희바보 시즌 2-->
       
       
  <script>     
