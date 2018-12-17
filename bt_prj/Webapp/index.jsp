@@ -6,6 +6,7 @@
   	<!-- header css / jquery cdn -->
       <%@ include file="/include/header.jsp" %>
       <!-- hihihi -->
+      <!-- 소희바보  -->
       
       
  <script>     
